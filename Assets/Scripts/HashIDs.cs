@@ -14,7 +14,8 @@ public class HashIDs : MonoBehaviour
     public int inAirState;
     public int runningState;
     public int slidingState;
-    public int superSpeedState; 
+    public int superSpeedState;
+    public int pressingState; 
 
     private void Awake()
     {
@@ -27,6 +28,7 @@ public class HashIDs : MonoBehaviour
         inAirState = Animator.StringToHash("InAir");
         runningState = Animator.StringToHash("Running");
         slidingState = Animator.StringToHash("Sliding");
-        superSpeedState = Animator.StringToHash("SuperSpeed"); 
+        superSpeedState = Animator.StringToHash("SuperSpeed");
+        pressingState = Animator.StringToHash("Pressing"); 
     }
 }

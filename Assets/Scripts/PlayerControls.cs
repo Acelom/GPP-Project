@@ -21,7 +21,9 @@ public class PlayerControls : MonoBehaviour
     private bool canDoubleJump;
     private ParticleSystem jumpSys;
     private ParticleSystem speedSys;
-    private bool controlled; 
+    private Vector3 direction;
+    private float xAxis;
+    private float yAxis; 
 
 
     public float raycastLength;
@@ -41,6 +43,7 @@ public class PlayerControls : MonoBehaviour
     public bool jumpEnabled;
     public bool speedEnabled;
     public PhysicMaterial mat;
+    public bool cutscene;
 
     private void Awake()
     {
@@ -140,41 +143,14 @@ public class PlayerControls : MonoBehaviour
         walkSpeed = baseSpeed * walkMultiplier;
         superSpeed = baseSpeed * superSpeedMultiplier;
 
-        float xAxis = Input.GetAxis("Horizontal");
-        float yAxis = Input.GetAxis("Vertical");
-      
-        bool jump = Input.GetButtonDown("Jump");
+        xAxis = Input.GetAxis("Horizontal");
+        yAxis = Input.GetAxis("Vertical");
         bool run = Input.GetButton("Run");
 
         Powers();
         temp = Quaternion.Lerp(transform.rotation, Quaternion.FromToRotation(transform.up, hit.normal) * transform.rotation, rotTime * Time.deltaTime);
         transform.rotation = Quaternion.Euler(temp.eulerAngles.x, transform.rotation.eulerAngles.y, temp.eulerAngles.z);
 
-        float slidingSpeed = 1;
-
-        if (!anim.GetBool(hash.slidingState))
-        {
-            mat.dynamicFriction = .6f;
-            mat.staticFriction = .6f;
-            mat.frictionCombine = PhysicMaterialCombine.Average;
-        }
-        else
-        {
-            slidingSpeed = slideDivider;
-        }
-
-        if ((Input.GetAxisRaw("Horizontal") != 0 || Input.GetAxisRaw("Vertical") != 0))
-        {
-            anim.SetBool(hash.movingState, true);
-            Vector3 movement = new Vector3(xAxis, 0, yAxis);
-            movement = Quaternion.Euler(0, cam.transform.eulerAngles.y, 0) * movement; 
-            yTemp = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(movement), turnSpeed / slidingSpeed);
-            transform.rotation = Quaternion.Euler(transform.eulerAngles.x, yTemp.eulerAngles.y, transform.rotation.eulerAngles.z);
-        }
-        else
-        {
-            anim.SetBool(hash.movingState, false);
-        }
      
 
         if (slope.magnitude > slopeLimit)
@@ -234,18 +210,7 @@ public class PlayerControls : MonoBehaviour
         {
             canDoubleJump = true; 
         }
-
-
-        if (jump && !anim.GetBool(hash.inAirState))  
-        {
-            GetComponent<Rigidbody>().AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
-        }
-
-        if (jump && anim.GetBool(hash.inAirState) && canDoubleJump)
-        {
-            GetComponent<Rigidbody>().AddForce(Vector3.up * jumpForce * 1.5f, ForceMode.Impulse);
-            canDoubleJump = false; 
-        }
+       
 
         if (GetComponent<Rigidbody>().velocity.y > 0.01f && anim.GetBool(hash.inAirState))
         {
@@ -256,7 +221,7 @@ public class PlayerControls : MonoBehaviour
             anim.SetBool(hash.jumpingState, false);
         }
 
-        Vector3 direction = new Vector3(xAxis, 0, yAxis);
+        direction = new Vector3(xAxis, 0, yAxis);
 
         if (anim.GetBool(hash.runningState) || anim.GetBool(hash.superSpeedState))
         {
@@ -286,10 +251,60 @@ public class PlayerControls : MonoBehaviour
         }
 
 
+        if (!cutscene)
+        {
+            Move();
+        }
+        
+       
+   }
+
+    private void Move()
+    {
+        bool jump = Input.GetButtonDown("Jump");
+
+
+        float slidingSpeed = 1;
+
+        if (!anim.GetBool(hash.slidingState))
+        {
+            mat.dynamicFriction = .6f;
+            mat.staticFriction = .6f;
+            mat.frictionCombine = PhysicMaterialCombine.Average;
+        }
+        else
+        {
+            slidingSpeed = slideDivider;
+        }
+
+        if ((Input.GetAxisRaw("Horizontal") != 0 || Input.GetAxisRaw("Vertical") != 0))
+        {
+            anim.SetBool(hash.movingState, true);
+            Vector3 movement = new Vector3(xAxis, 0, yAxis);
+            movement = Quaternion.Euler(0, cam.transform.eulerAngles.y, 0) * movement;
+            yTemp = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(movement), turnSpeed / slidingSpeed);
+            transform.rotation = Quaternion.Euler(transform.eulerAngles.x, yTemp.eulerAngles.y, transform.rotation.eulerAngles.z);
+        }
+        else
+        {
+            anim.SetBool(hash.movingState, false);
+        }
+
+
+        if (jump && !anim.GetBool(hash.inAirState))
+        {
+            GetComponent<Rigidbody>().AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
+        }
+
+        if (jump && anim.GetBool(hash.inAirState) && canDoubleJump)
+        {
+            GetComponent<Rigidbody>().AddForce(Vector3.up * jumpForce * 1.5f, ForceMode.Impulse);
+            canDoubleJump = false;
+        }
         if (!anim.GetBool(hash.slidingState))
         {
             transform.position += (transform.forward * direction.magnitude * playerSpeed * Time.deltaTime);
         }
-       
-   }
+
+    }
 }
