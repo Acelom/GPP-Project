@@ -34,15 +34,19 @@ public class Spin : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (JumpCoin)
+        if (other.tag == "Player")
         {
-            script.jumpEnabled = true; 
+            if (JumpCoin)
+            {
+                script.jumpEnabled = true;
+            }
+            if (SpeedCoin)
+            {
+                script.speedEnabled = true;
+            }
+     
+        die = true; 
         }
-        if (SpeedCoin)
-        {
-            script.speedEnabled = true; 
-        }
-        die = true;
     }
 
     private void Update()

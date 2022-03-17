@@ -53,7 +53,7 @@ public class PressButton : MonoBehaviour
 
     private void OnTriggerStay(Collider other)
     {
-        if (Input.GetButtonDown("Interact"))
+        if (Input.GetButtonDown("Interact") && other.tag == "Player")
         {
             moving = true;
             GetComponent<BoxCollider>().enabled = false;
@@ -73,7 +73,7 @@ public class PressButton : MonoBehaviour
             player.transform.rotation = Quaternion.Slerp(player.transform.rotation, target.rotation, Time.deltaTime * rotSpeed);
         }
 
-        if (Vector3.Distance(player.transform.position, target.transform.position) < minDistance && !stop)
+        if (Vector3.Distance(player.transform.position, target.transform.position) < minDistance && !stop && moving)
         {
             camScript.cutscene = true;
             playerScript.cutscene = true;
@@ -92,7 +92,6 @@ public class PressButton : MonoBehaviour
         {
             pressing = false;
             pressed = true;
-            Debug.Log(pressed);
             sys.Play();
             anim.SetBool(hash.pressingState, pressing);
             doorPos = door.transform.position;
