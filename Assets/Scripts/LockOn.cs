@@ -32,10 +32,15 @@ public class LockOn : MonoBehaviour
         bool LockOn = Input.GetButtonDown("LockOn");
 
         if (LockOn)
-        {
+        { 
+            if (lockedOn)
+            {
+                playerScript.lockedOn = false;
+            }
             lockedOn = !lockedOn;
             targeting = !targeting;
             switchTimer = 0; 
+           
         }
 
         if (lockedOn & targeting)
@@ -85,16 +90,16 @@ public class LockOn : MonoBehaviour
             {
                 lockedOn = CloseForTarget();
             }
-    
-            camScript.lockedOn = true;
+
+            camScript.currMode = CameraControls.camMode.lockOn;
             playerScript.lockedOn = true;
         }
         else
         {
             targeter.GetComponent<Renderer>().enabled = false;
             targeter.GetComponent<Light>().enabled = false; 
-            camScript.lockedOn = false;
-            playerScript.lockedOn = false;
+            camScript.currMode = CameraControls.camMode.follow;
+
         }
     }
 

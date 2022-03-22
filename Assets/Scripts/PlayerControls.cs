@@ -1,13 +1,14 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using PathCreation; 
 
 public class PlayerControls : MonoBehaviour
 {
     private float playerSpeed;
     private float walkSpeed;
     private float runSpeed;
-    private float lockOnSpeed; 
+    private float lockOnSpeed;
     private float superSpeed;
     private float timer;
     private Camera cam;
@@ -34,7 +35,7 @@ public class PlayerControls : MonoBehaviour
     public float baseSpeed;
     public float walkMultiplier;
     public float runMultiplier;
-    public float lockOnMultiplier; 
+    public float lockOnMultiplier;
     public float superSpeedMultiplier;
     public float airDivider;
     public float landingDivider;
@@ -47,6 +48,8 @@ public class PlayerControls : MonoBehaviour
     public PhysicMaterial mat;
     public bool cutscene;
     public bool lockedOn;
+    public bool splineFollow;
+    public PathCreation.PathCreator pathCreator;
 
     private void Awake()
     {
@@ -145,7 +148,7 @@ public class PlayerControls : MonoBehaviour
         runSpeed = baseSpeed * runMultiplier;
         walkSpeed = baseSpeed * walkMultiplier;
         superSpeed = baseSpeed * superSpeedMultiplier;
-        lockOnSpeed = baseSpeed * lockOnMultiplier; 
+        lockOnSpeed = baseSpeed * lockOnMultiplier;
 
         xAxis = Input.GetAxis("Horizontal");
         yAxis = Input.GetAxis("Vertical");
@@ -257,7 +260,9 @@ public class PlayerControls : MonoBehaviour
 
         anim.SetBool(hash.lockedOnState, lockedOn);
 
-        if (lockedOn)
+        Jump(); 
+
+        if (lockedOn && !lockedOn)
         {
             LockOnMove();
         }
@@ -265,8 +270,14 @@ public class PlayerControls : MonoBehaviour
         {
             anim.SetBool(hash.runningState, run);
         }
+        
+        if (splineFollow)
+        {
+            SplineMove(); 
+        }
 
-        if (!cutscene && !lockedOn)
+
+        if (!cutscene && !lockedOn && !splineFollow)
         {
             Move();
         }
@@ -288,10 +299,20 @@ public class PlayerControls : MonoBehaviour
             canDoubleJump = false;
         }
     }
+
+    private void SplineMove()
+    {
+        if (pathCreator != null)
+        {
+            distanceTravelled += xAxis * playerSpeed * Time.deltaTime;
+            transform.position = pathCreator.path.GetPointAtDistance(distanceTravelled, PathCreation.endOfPathInstruction);
+            transform.rotation = pathCreator.path.GetRotationAtDistance(distanceTravelled, PathCreation.endOfPathInstruction);
+        }
+    }
+
     private void LockOnMove()
     {
-        Jump();
-        playerSpeed = lockOnSpeed; 
+        playerSpeed = lockOnSpeed;
         if ((Input.GetAxisRaw("Horizontal") != 0 || Input.GetAxisRaw("Vertical") != 0))
         {
             anim.SetBool(hash.movingState, true);
@@ -307,7 +328,6 @@ public class PlayerControls : MonoBehaviour
 
     private void Move()
     {
-
         float slidingSpeed = 1;
 
         if (!anim.GetBool(hash.slidingState))
@@ -317,7 +337,7 @@ public class PlayerControls : MonoBehaviour
             mat.frictionCombine = PhysicMaterialCombine.Average;
         }
         else
-        {
+        { 
             slidingSpeed = slideDivider;
         }
 
@@ -334,7 +354,7 @@ public class PlayerControls : MonoBehaviour
             anim.SetBool(hash.movingState, false);
         }
 
-        Jump();
+
         if (!anim.GetBool(hash.slidingState))
         {
             transform.position += (transform.forward * direction.magnitude * playerSpeed * Time.deltaTime);

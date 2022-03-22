@@ -75,7 +75,6 @@ public class PressButton : MonoBehaviour
 
         if (Vector3.Distance(player.transform.position, target.transform.position) < minDistance && !stop && moving)
         {
-            camScript.cutscene = true;
             playerScript.cutscene = true;
             cutscenePos.LookAt((transform.position+ player.transform.position) / 2); 
             moving = false;
@@ -85,11 +84,13 @@ public class PressButton : MonoBehaviour
         
         if (pressing && pressingTimer < pressingLimit)
         {
+
             anim.SetBool(hash.pressingState, pressing); 
             pressingTimer += Time.deltaTime;
         }
         else if (pressingTimer > pressingLimit && pressing)
         {
+
             pressing = false;
             pressed = true;
             sys.Play();
@@ -119,6 +120,8 @@ public class PressButton : MonoBehaviour
         }
         else if (pressed)
         {
+
+         
             timer += Time.deltaTime;
             intensity = Mathf.Lerp(intensity, 2.5f, Time.deltaTime * lightSpeed);
             mat.SetVector("_EmissionColor", Color.yellow * intensity);
@@ -129,13 +132,18 @@ public class PressButton : MonoBehaviour
         if (endTimer > endingTime)
         {
             playerScript.cutscene = false;
-            camScript.cutscene = false; 
+            camScript.currMode = CameraControls.camMode.follow; 
         }
 
         if (door.transform.position.y < -4.5)
         {
             sys.Stop(); 
             Destroy(this); 
+        }
+
+        if (playerScript.cutscene)
+        {
+            camScript.currMode = CameraControls.camMode.cutscene;
         }
     }
 }
