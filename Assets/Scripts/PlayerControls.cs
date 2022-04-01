@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using PathCreation; 
+using PathCreation;
 
 public class PlayerControls : MonoBehaviour
 {
@@ -26,6 +26,8 @@ public class PlayerControls : MonoBehaviour
     private Vector3 direction;
     private float xAxis;
     private float yAxis;
+    private bool splineHold;
+    private int splineHoldDirection;
 
 
     public float raycastLength;
@@ -49,7 +51,8 @@ public class PlayerControls : MonoBehaviour
     public bool cutscene;
     public bool lockedOn;
     public bool splineFollow;
-    public PathCreation.PathCreator pathCreator;
+    public PathCreator pathCreator;
+    public float distanceTravelled;
 
     private void Awake()
     {
@@ -260,9 +263,9 @@ public class PlayerControls : MonoBehaviour
 
         anim.SetBool(hash.lockedOnState, lockedOn);
 
-        Jump(); 
+        Jump();
 
-        if (lockedOn && !lockedOn)
+        if (lockedOn)
         {
             LockOnMove();
         }
@@ -270,18 +273,17 @@ public class PlayerControls : MonoBehaviour
         {
             anim.SetBool(hash.runningState, run);
         }
-        
+
         if (splineFollow)
         {
-            SplineMove(); 
+            SplineMove();
         }
-
 
         if (!cutscene && !lockedOn && !splineFollow)
         {
             Move();
         }
-
+       
     }
 
     private void Jump()
@@ -302,11 +304,47 @@ public class PlayerControls : MonoBehaviour
 
     private void SplineMove()
     {
+        anim.SetBool(hash.movingState, (Input.GetAxisRaw("Horizontal") != 0));
+
+        if (distanceTravelled == 0)
+        {
+            distanceTravelled = pathCreator.path.GetClosestDistanceAlongPath(transform.position);
+            transform.position = pathCreator.path.GetPointAtDistance(distanceTravelled);
+            if (xAxis != 0 || yAxis != 0)
+            {
+                splineHold = true;
+                splineHoldDirection = -Mathf.RoundToInt(((pathCreator.path.GetClosestTimeOnPath(transform.position)) * 2) - 1);
+            }
+        }
+
+        if (splineHold && (xAxis != 0 || yAxis != 0))
+        {
+            xAxis = splineHoldDirection; 
+            anim.SetBool(hash.movingState, true); 
+        }
+        else if (splineHold && (xAxis == 0 && yAxis == 0))
+        {
+            splineHold = false; 
+        }
+
+
         if (pathCreator != null)
         {
-            distanceTravelled += xAxis * playerSpeed * Time.deltaTime;
-            transform.position = pathCreator.path.GetPointAtDistance(distanceTravelled, PathCreation.endOfPathInstruction);
-            transform.rotation = pathCreator.path.GetRotationAtDistance(distanceTravelled, PathCreation.endOfPathInstruction);
+            if (xAxis < -0.1f)
+            {
+                transform.rotation = Quaternion.Euler(transform.rotation.eulerAngles.x, pathCreator.path.GetRotationAtDistance(distanceTravelled).eulerAngles.y + 180, transform.rotation.eulerAngles.z);
+            }
+            else if (xAxis > 0.1f)
+            {
+                transform.rotation = Quaternion.Euler(transform.rotation.eulerAngles.x, pathCreator.path.GetRotationAtDistance(distanceTravelled).eulerAngles.y, transform.rotation.eulerAngles.z);
+            }
+
+            if (xAxis != 0)
+            {
+                distanceTravelled += xAxis * playerSpeed * Time.deltaTime;
+                transform.position += (transform.forward * Time.deltaTime * playerSpeed * Mathf.Abs(xAxis));
+            }
+
         }
     }
 
@@ -337,7 +375,7 @@ public class PlayerControls : MonoBehaviour
             mat.frictionCombine = PhysicMaterialCombine.Average;
         }
         else
-        { 
+        {
             slidingSpeed = slideDivider;
         }
 

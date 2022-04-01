@@ -97,8 +97,11 @@ public class LockOn : MonoBehaviour
         else
         {
             targeter.GetComponent<Renderer>().enabled = false;
-            targeter.GetComponent<Light>().enabled = false; 
-            camScript.currMode = CameraControls.camMode.follow;
+            targeter.GetComponent<Light>().enabled = false;
+            if (camScript.currMode == CameraControls.camMode.lockOn)
+            {
+                camScript.currMode = CameraControls.camMode.follow;
+            }
 
         }
     }

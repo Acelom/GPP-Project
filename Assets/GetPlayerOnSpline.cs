@@ -6,32 +6,37 @@ public class GetPlayerOnSpline : MonoBehaviour
 {
     private GameObject player;
     private PlayerControls playerScript;
-
-    public PathCreation.PathCreator pathCreator;
+    private CameraControls camScript; 
+    private PathCreation.PathCreator pathCreator;
     
     private void Awake()
     {
         player = GameObject.FindGameObjectWithTag("Player");
         playerScript = player.GetComponent<PlayerControls>();
+        camScript = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<CameraControls>(); 
+        pathCreator = GameObject.FindGameObjectWithTag("Path").GetComponent<PathCreation.PathCreator>(); 
     }
 
-    private void OnCollisionStay(Collision collisionInfo)
+    private void OnTriggerStay(Collider other)
     {
-        GameObject other = collisionInfo.transform.gameObject; 
-        if (other.tag = "Player")
+        if (other.tag == "Player")
         {
-            playerScript.pathCreator = pathCreator; 
+            playerScript.pathCreator = pathCreator;
+            camScript.pathCreator = pathCreator; 
+            camScript.currMode = CameraControls.camMode.splineFollow;
             playerScript.splineFollow = true;
+            
         }
     }
 
-    private void OnCollisionExit(Collision collisionInfo)
+    private void OnTriggerExit(Collider other)
     {
-        GameObject other = collisionInfo.transform.gameObject;
-        if (other.tag = "Player")
+        if (other.tag == "Player")
         {
-            playerScript.pathCreator = null; 
-            playerScript.splineFollow = false; 
+            playerScript.pathCreator = null;
+            camScript.pathCreator = null;
+            playerScript.splineFollow = false;
+            camScript.currMode = CameraControls.camMode.follow; 
         }
     }
 }

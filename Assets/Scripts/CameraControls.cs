@@ -6,11 +6,13 @@ public class CameraControls : MonoBehaviour
 {
 
     private GameObject player;
+    private PlayerControls playerScript; 
     private float currentDistance;
     private RaycastHit[] hits;
     private List<GameObject> hitList;
     private List<GameObject> prevList;
-    private Transform camTarget;
+
+
     public enum camMode
     {
         follow,
@@ -28,7 +30,9 @@ public class CameraControls : MonoBehaviour
     public float minDistance;
     public float moveSpeed;
     public Transform cutscenePos;
-
+    public Transform camTarget;
+    public float splineSpeed;
+    public PathCreation.PathCreator pathCreator; 
 
     private void Awake()
     {
@@ -37,6 +41,8 @@ public class CameraControls : MonoBehaviour
         hitList = new List<GameObject>();
         prevList = new List<GameObject>();
         currMode = camMode.follow;
+        player = GameObject.FindGameObjectWithTag("Player");
+        playerScript = player.GetComponent<PlayerControls>();
     }
 
 
@@ -48,7 +54,7 @@ public class CameraControls : MonoBehaviour
         float camXAxis = Input.GetAxis("RHorizontal");
         float camYAxis = Input.GetAxis("RVertical");
 
-        if (currMode != camMode.cutscene)
+        if (currMode != camMode.cutscene && currMode != camMode.splineFollow)
         {
             transform.rotation = Quaternion.Euler(transform.rotation.eulerAngles.x, transform.rotation.eulerAngles.y, 0);
             transform.position = Vector3.Lerp(transform.position, camTarget.transform.position + (-transform.forward * currentDistance), Mathf.SmoothStep(0, 1, followSpeed * Time.deltaTime));
@@ -96,7 +102,6 @@ public class CameraControls : MonoBehaviour
         prevList = new List<GameObject>(hitList);
         hitList.Clear();
 
-        Debug.Log(currMode.ToString());
         switch (currMode)
         {
             case camMode.lockOn:
@@ -116,6 +121,14 @@ public class CameraControls : MonoBehaviour
                 {
                     transform.Rotate(new Vector3(camYAxis * Time.deltaTime * turnSpeed, camXAxis * Time.deltaTime * turnSpeed, 0));
                 }
+                playerScript.distanceTravelled = 0; 
+                break;
+            case camMode.splineFollow:
+             
+                transform.rotation = pathCreator.path.GetRotationAtDistance(playerScript.distanceTravelled);
+                transform.position = Vector3.Lerp(transform.position,
+                pathCreator.path.GetPointAtDistance(playerScript.distanceTravelled) + transform.forward * -1 + transform.up * 3 + transform.right * 5, Time.deltaTime * splineSpeed);
+                transform.LookAt(camTarget); 
                 break;
         }
 

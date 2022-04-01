@@ -10,6 +10,9 @@ namespace PathCreation.Examples {
         public GameObject holder;
         public float spacing = 3;
 
+        [Range(0.0f, 10.0f)]
+        public float endingSpace = 3; 
+
         const float minSpacing = .1f;
 
         void Generate () {
@@ -19,9 +22,9 @@ namespace PathCreation.Examples {
                 VertexPath path = pathCreator.path;
 
                 spacing = Mathf.Max(minSpacing, spacing);
-                float dst = 0;
+                float dst = endingSpace;
 
-                while (dst < path.length) {
+                while (dst < path.length - endingSpace) {
                     Vector3 point = path.GetPointAtDistance (dst);
                     Quaternion rot = path.GetRotationAtDistance (dst);
                     Instantiate (prefab, point, rot, holder.transform);
