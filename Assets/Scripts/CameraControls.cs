@@ -32,7 +32,7 @@ public class CameraControls : MonoBehaviour
     public Transform cutscenePos;
     public Transform camTarget;
     public float splineSpeed;
-    public PathCreation.PathCreator pathCreator; 
+    public PathCreation.PathCreator pathCreator;
 
     private void Awake()
     {
@@ -128,7 +128,9 @@ public class CameraControls : MonoBehaviour
                 transform.rotation = pathCreator.path.GetRotationAtDistance(playerScript.distanceTravelled);
                 transform.position = Vector3.Lerp(transform.position,
                 pathCreator.path.GetPointAtDistance(playerScript.distanceTravelled) + transform.forward * -1 + transform.up * 3 + transform.right * 5, Time.deltaTime * splineSpeed);
-                transform.LookAt(camTarget); 
+
+                var targetRotation = Quaternion.LookRotation(camTarget.transform.position - transform.position);
+                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, 100 * Time.deltaTime);
                 break;
         }
 
